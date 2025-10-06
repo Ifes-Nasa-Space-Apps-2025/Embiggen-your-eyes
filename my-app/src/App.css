@@ -1,0 +1,51 @@
+/* src/components/LandingScreen.css */
+
+/* Seu código correto para o container de tela cheia */
+.fullscreen-image-container {
+  width: 100vw;
+  height: 100vh;
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+  
+  /* Adicione estas linhas para centralizar o conteúdo de texto */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  color: white;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Estilos para o bloco de texto */
+.content h1 {
+  font-size: 3.5em;
+  margin-bottom: 10px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* Estilos para a linha decorativa */
+.line {
+  width: 200px;
+  height: 1.5px;
+  background-color: white;
+  margin: 20px auto; /* 'auto' na horizontal ajuda a centralizar */
+  opacity: 0.7;
+}
+
+/* Estilos para os parágrafos */
+.content p {
+  font-size: 1.2em;
+  margin: 5px 0;
+  opacity: 0.8;
+}
+
+/* Estilos para o texto "Press any key to start" */
+.press-key {
+  position: absolute;
+  bottom: 40px;
+  left: 50%; /* Centraliza o início do elemento */
+  transform: translateX(-50%); /* Ajusta a centralização */
+  font-size: 1.1em;
+  opacity: 0.7;
+}

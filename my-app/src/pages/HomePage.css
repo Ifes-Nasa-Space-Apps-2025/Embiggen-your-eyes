@@ -1,0 +1,26 @@
+.home-container {
+	display: flex;
+	height: 100vh;
+	width: 100vw;
+	overflow: hidden;
+	position: relative;
+	background-color: #000;
+}
+
+.viewer-container {
+	flex: 1;
+}
+
+.openseadragon-container {
+	outline: none !important;
+}
+
+.overlay-top-right {
+	position: fixed;
+	top: 15px;
+	right: 15px;
+	z-index: 1000;
+}
+.overlay-top-right img {
+	width: 236px;
+}
