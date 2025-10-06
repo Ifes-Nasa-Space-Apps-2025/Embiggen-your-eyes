@@ -2,7 +2,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import OpenSeadragon from "openseadragon";
 import "./HomePage.css";
-//import Sidebar from "../components/Sidebar";
 
 interface Marcador {
   point: OpenSeadragon.Point;
@@ -42,7 +41,7 @@ const HomePage: React.FC = () => {
   // Função que desenha todos os overlays
   const desenharOverlays = () => {
     const viewer = viewerInstance.current;
-    if (!viewer || viewer.isOpen() === false || !viewer.drawer) return;
+    if (!viewer || !viewer.isOpen() || !viewer.drawer) return;
 
     try {
       if (viewer.world.getItemCount() === 0) return;
@@ -55,16 +54,12 @@ const HomePage: React.FC = () => {
     const pos = new OpenSeadragon.Rect(...getImagemByIndex(currentIndex).coordenadas_quadrado);
     const square = document.createElement("div");
     square.style.border = "3px solid red";
-    square.style.width = "100px";
-    square.style.height = "100px";
     square.style.background = "transparent";
-    square.style.position = "absolute";
     square.style.pointerEvents = "none";
 
     viewer.addOverlay({
       element: square,
       location: pos,
-      placement: OpenSeadragon.OverlayPlacement.CENTER,
     });
 
     // Pino do gabarito
@@ -80,16 +75,12 @@ const HomePage: React.FC = () => {
       viewer.addOverlay({
         element: gabaritoCircle,
         location: new OpenSeadragon.Point(x, y),
-        placement: OpenSeadragon.OverlayPlacement.CENTER,
+        placement: OpenSeadragon.Placement.CENTER,
       });
     }
 
     // Marcadores do jogador com número
     marcadores.forEach((m, index) => {
-      const container = document.createElement("div");
-      container.style.position = "relative";
-      container.style.pointerEvents = "none";
-
       const circle = document.createElement("div");
       circle.style.width = "20px";
       circle.style.height = "20px";
@@ -101,65 +92,68 @@ const HomePage: React.FC = () => {
       circle.style.justifyContent = "center";
       circle.style.color = "white";
       circle.style.fontSize = "12px";
+      circle.style.pointerEvents = "none";
       circle.innerText = (index + 1).toString();
 
-      container.appendChild(circle);
-
       viewer.addOverlay({
-        element: container,
+        element: circle,
         location: m.point,
-        placement: OpenSeadragon.OverlayPlacement.CENTER,
+        placement: OpenSeadragon.Placement.CENTER,
       });
     });
   };
 
   // Inicializa OpenSeadragon
   useEffect(() => {
-    if (!viewerRef.current || viewerInstance.current) return;
+    if (viewerRef.current && !viewerInstance.current) {
+      const viewer = OpenSeadragon({
+        element: viewerRef.current,
+        prefixUrl: "/openseadragon-images/",
+        tileSources: "/tiles/night-sky.dzi",
+        showNavigator: true,
+        navigatorPosition: "BOTTOM_RIGHT",
+        maxZoomPixelRatio: 2,
+        visibilityRatio: 1,
+        constrainDuringPan: true,
+        minZoomLevel: 0,
+        zoomPerScroll: 1.3,
+        showZoomControl: false,
+        showFullPageControl: false,
+        showHomeControl: false,
+      });
 
-    const viewer = OpenSeadragon({
-      element: viewerRef.current,
-      prefixUrl: "/openseadragon-images/",
-      tileSources: "/tiles/night-sky.dzi",
-      showNavigator: true,
-      navigatorPosition: "BOTTOM_RIGHT",
-      maxZoomPixelRatio: 2,
-      visibilityRatio: 1,
-      constrainDuringPan: true,
-      minZoomLevel: 0,
-      zoomPerScroll: 1.3,
-      showZoomControl: false,
-      showFullPageControl: false,
-      showHomeControl: false,
-    });
+      viewerInstance.current = viewer;
 
-    viewerInstance.current = viewer;
+      viewer.addHandler("open", () => {
+        desenharOverlays();
+      });
 
-    viewer.addHandler("open", () => {
-      desenharOverlays();
-    });
+      viewer.addHandler("canvas-click", (event) => {
+        const mouseEvent = event.originalEvent as MouseEvent;
+        if (!mouseEvent.ctrlKey) return;
 
-    viewer.addHandler("canvas-click", async (event) => {
-      if (!event.originalEvent.ctrlKey) return;
+        event.preventDefaultAction = true;
+        const webPoint = event.position;
+        const viewportPoint = viewer.viewport.pointFromPixel(webPoint);
 
-      event.preventDefaultAction = true;
-      const webPoint = event.position;
-      const viewportPoint = viewer.viewport.pointFromPixel(webPoint);
-
-      const texto = prompt("Digite sua anotação:");
-      if (!texto) return;
-
-      setMarcadores((prev) => [...prev, { point: viewportPoint, texto }]);
-    });
+        const texto = prompt("Digite sua anotação:");
+        if (texto) {
+          setMarcadores((prev) => [...prev, { point: viewportPoint, texto }]);
+        }
+      });
+    }
 
     return () => {
-      viewer.destroy();
-      viewerInstance.current = null;
+      if (viewerInstance.current) {
+        viewerInstance.current.destroy();
+        viewerInstance.current = null;
+      }
     };
   }, []);
 
   // Redesenha overlays quando mudam marcadores ou índice
   useEffect(() => {
+    // A short timeout prevents drawing attempts while the viewer might be transitioning
     const id = setTimeout(() => desenharOverlays(), 50);
     return () => clearTimeout(id);
   }, [marcadores, currentIndex, gabaritoVisivel]);
@@ -238,8 +232,10 @@ const HomePage: React.FC = () => {
               key={i}
               style={{ marginBottom: "5px", cursor: "pointer" }}
               onClick={() => {
-                viewerInstance.current?.viewport.panTo(m.point);
-                viewerInstance.current?.viewport.zoomTo(2);
+                if (viewerInstance.current) {
+                  viewerInstance.current.viewport.panTo(m.point);
+                  viewerInstance.current.viewport.zoomTo(2);
+                }
               }}
             >
               {m.texto}
