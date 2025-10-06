@@ -136,7 +136,7 @@ const HomePage: React.FC = () => {
         const webPoint = event.position;
         const viewportPoint = viewer.viewport.pointFromPixel(webPoint);
 
-        const texto = prompt("Digite sua anotação:");
+        const texto = prompt("Write your annotation:");
         if (texto) {
           setMarcadores((prev) => [...prev, { point: viewportPoint, texto }]);
         }
